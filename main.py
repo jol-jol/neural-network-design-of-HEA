@@ -1,36 +1,38 @@
-from ase.io import read
-from ase.geometry import get_distances
-from ase.build import sort
-
-from random import shuffle
-
 import numpy as np
 
-# If variable BE is imported, then directly go to training
-if 'BEs' not in vars():
-  signatures = []; BEs = []; types = []; surfaces = [];
-  with open('data.csv',) as f:
-    for l in f.readlines():
-      tmp = l[:-1].split(',')
-      surfaces.append(tmp[0])
-      types.append(tmp[1])
-      tmp = list(map(float, tmp[2:]))
-      signatures.append(tmp[:-1])
-      BEs.append(tmp[-1])
-  signatures = np.array(signatures).reshape((len(BEs), -1, 5))
-  BEs = np.array(BEs)
-  types = np.array(types)
-  surfaces = np.array(surfaces)
+### Loading data from csv file ###
+inputs, outputs = [], [];
+# For simplicity and reduced depedency on other libraries, we did not use
+# popular Python libraries (e.g. Pandas) to open the csv file, but instead
+# we processed the raw csv file in a customized way
+with open('data.csv') as f:
+  for l in f.readlines():
+    # excluding the last character, which is newline character
+    l = l[:-1]
+    items = l.split(',')
+    # excluding the first 2 items, which are the labels of the row,
+    # and transforming column 3 and onward to numerical values
+    items = list(map(float, items[2:]))
+    # column 3 to the second last column are input data (see SI for details)
+    inputs.append(items[:-1])
+    # the last column is the output data, which is the binding energy of OH*
+    outputs.append(items[-1])
+# reshaping the outputs such that the input data has the dimensions:
+# (number of DFT calculations, number of atoms in each calculation, number of 
+#  features for each atom)
+# number of features for each atom = 5 (see paper for details)
+inputs = np.array(inputs).reshape((len(outputs), -1, 5))
+outputs = np.array(outputs)
 
 ### Training ###
-TRAINING_RATIO = 0.5
-training_num = int(TRAINING_RATIO * len(BEs))
 import tensorflow as tf
 from random import shuffle
-rand_idx = list(range(len(signatures))); shuffle(rand_idx)
-signatures = signatures[rand_idx]; BEs = BEs[rand_idx]
-x_train = signatures[:training_num]; y_train = BEs[:training_num]
-x_test = signatures[training_num:]; y_test = BEs[training_num:]
+TRAINING_RATIO = 0.5
+training_num = int(TRAINING_RATIO * len(outputs))
+rand_idx = list(range(len(inputs))); shuffle(rand_idx)
+inputs = inputs[rand_idx]; outputs = outputs[rand_idx]
+x_train, y_train = inputs[:training_num], outputs[:training_num]
+x_test, y_test = inputs[training_num:], outputs[training_num:]
 
 class MyModel(tf.keras.Model):
   def __init__(self, ):
@@ -52,8 +54,6 @@ h = model.fit(x_train, y_train, epochs=3000, callbacks=[], )
 if 'results' not in vars():
   results = []
 y = model.evaluate(x_test, y_test, verbose=2)
-results.append(y[2]**0.5)
-print(results)
 
 ### Ploting results ###
 import matplotlib.pyplot as plt

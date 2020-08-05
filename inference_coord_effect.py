@@ -1,14 +1,26 @@
-elements_dict = {44: [1,0,0,0,0], 45: [0,1,0,0,0], 46: [0,0,1,0,0],\
-                 77: [0,0,0,1,0], 78: [0,0,0,0,1],}
+# if model training has not been performed, perform it first by executing
+# "main.py" file
+if 'model' not in vars():
+  exec(open('main.py').read())
+
+# elements_dict maps atomic number of an element (Ru, Rh, Ir, Pt or Pd)
+# to the first 3 features used in the neural network model (period number,
+# group number, and electronegativity). Note that these features are 
+# referenced to Ru (a simplified normalization)
 elements_dict = {44: [0,0,0], 45: [0,1,0], 46: [0,2,3],\
                  77: [1,1,1.5], 78: [1,2,4.5],}
 
 coord_nums_dict = {}; gen_coord_nums_dict = {};
+# 'coord_nums.csv' file contains the coordination environment information
+# of different active sites on different crystal surfaces, as discussed
+# in the paper
 with open('coord_nums.csv') as f:
   for l in f.readlines():
-    tmp = l.split(',')
-    coord_nums_dict[tmp[0]] = list(map(int, tmp[1:]))
-    gen_coord_nums_dict[tmp[0]] = sum(coord_nums_dict[tmp[0]][2:])/12.
+    items = l.split(',')
+    label = items[0]
+    coord_nums_dict[label] = list(map(int, items[1:]))
+    gen_coord_nums_dict[label] = sum(coord_nums_dict[label][2:])/12.
+    # normalized by 12, which is the maximal coord. num. in fcc structure
 gen_coord_nums = np.array(list(gen_coord_nums_dict.values()))
 reorder_idx = gen_coord_nums.argsort()
 

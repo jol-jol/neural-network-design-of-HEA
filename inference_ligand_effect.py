@@ -1,8 +1,12 @@
+# if model training has not been performed, perform it first by executing
+# "main.py" file
 if 'model' not in vars():
   exec(open('main.py').read())
 
-elements_dict = {44: [1,0,0,0,0], 45: [0,1,0,0,0], 46: [0,0,1,0,0],\
-                 77: [0,0,0,1,0], 78: [0,0,0,0,1],}
+# elements_dict maps atomic number of an element (Ru, Rh, Ir, Pt or Pd)
+# to the first 3 features used in the neural network model (period number,
+# group number, and electronegativity). Note that these features are 
+# referenced to Ru (a simplified normalization)
 elements_dict = {44: [0,0,0], 45: [0,1,0], 46: [0,2,3],\
                  77: [1,1,1.5], 78: [1,2,4.5],}
 
