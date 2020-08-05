@@ -46,8 +46,7 @@ class MyModel(tf.keras.Model):
 
 model = MyModel()
 
-model.compile(optimizer='adam', loss='mse', learning_rate=0.0001, \
-  metrics=['mae','mse'])
+model.compile(optimizer='adam', loss='mse', metrics=['mae','mse'])
 
 h = model.fit(x_train, y_train, epochs=3000, callbacks=[], )
 
